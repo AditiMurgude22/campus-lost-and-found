@@ -1,3 +1,5 @@
+const BASE_URL = "https://campus-backend-f3og.onrender.com";
+
 let allItems = [];
 let currentType = null;
 let currentCategory = null;
@@ -5,7 +7,7 @@ let currentCategory = null;
 // 🚀 LOAD ITEMS
 async function loadItems() {
     try {
-        const res = await fetch("http://127.0.0.1:5000/api/items/all");
+        const res = await fetch(`${BASE_URL}/api/items/all`);
         const data = await res.json();
 
         allItems = data.reverse();
@@ -46,9 +48,8 @@ function displayItems(items) {
 
     items.forEach(item => {
         let img = item.image
-            ? `http://127.0.0.1:5000/uploads/${item.image}`
+            ? `${BASE_URL}/uploads/${item.image}`
             : "https://via.placeholder.com/80";
-        console.log("[DEBUG] Image URL:", img);
 
         const isOwner = String(item.ownerId) === String(currentUser.id);
         const showChat = item.ownerId && String(item.ownerId) !== String(currentUser.id);
@@ -101,11 +102,12 @@ function chatWithOwner(ownerId, ownerName, itemId) {
     window.location.href = `chat-tab.html?userId=${encodeURIComponent(ownerId)}&userName=${encodeURIComponent(ownerName)}`;
 }
 
+// 🗑 DELETE ITEM
 async function deleteItem(itemId, btnEl) {
     if (!confirm("Are you sure you want to delete this item?")) return;
 
     try {
-        const res = await fetch(`http://127.0.0.1:5000/api/items/delete/${itemId}`, {
+        const res = await fetch(`${BASE_URL}/api/items/delete/${itemId}`, {
             method: "DELETE"
         });
 
@@ -133,31 +135,27 @@ function searchItems() {
     displayItems(filtered);
 }
 
-// 🔥 TYPE FILTER + HIGHLIGHT
+// 🔥 TYPE FILTER
 function filterType(type, el) {
     currentType = type;
 
-    // remove highlight
     document.querySelectorAll(".main-card").forEach(c =>
         c.classList.remove("active-tab")
     );
 
-    // add highlight
     if (el) el.classList.add("active-tab");
 
     applyFilters();
 }
 
-// 🔥 CATEGORY FILTER + HIGHLIGHT
+// 🔥 CATEGORY FILTER
 function filterCategory(category, el) {
     currentCategory = category;
 
-    // remove highlight
     document.querySelectorAll(".category-box").forEach(c =>
         c.classList.remove("active-category")
     );
 
-    // add highlight
     if (el) {
         el.querySelector(".category-box").classList.add("active-category");
     }
@@ -194,14 +192,13 @@ function submitItem() {
 
     if (image) formData.append("image", image);
 
-    fetch("http://127.0.0.1:5000/api/items/add", {
+    fetch(`${BASE_URL}/api/items/add`, {
         method: "POST",
         body: formData
     })
     .then(() => {
         alert("Item added ✅");
 
-        // clear form
         document.getElementById("title").value = "";
         document.getElementById("description").value = "";
         document.getElementById("location").value = "";

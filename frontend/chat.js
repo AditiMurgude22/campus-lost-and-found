@@ -1,3 +1,5 @@
+const BASE_URL = "https://campus-backend-f3og.onrender.com";
+
 const urlParams = new URLSearchParams(window.location.search);
 const itemId = urlParams.get("itemId");
 
@@ -6,7 +8,7 @@ const user = JSON.parse(localStorage.getItem("user"));
 // 📥 LOAD MESSAGES
 async function loadMessages() {
     try {
-        const res = await fetch(`http://localhost:5000/api/chat/${itemId}`);
+        const res = await fetch(`${BASE_URL}/api/chat/${itemId}`);
         const messages = await res.json();
 
         const chatBox = document.getElementById("chatBox");
@@ -44,9 +46,9 @@ async function sendMessage() {
         const input = document.getElementById("message");
         const text = input.value.trim();
 
-        if (!text) return; // ❌ empty message block
+        if (!text) return;
 
-        await fetch("http://localhost:5000/api/chat/send", {
+        await fetch(`${BASE_URL}/api/chat/send`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -54,7 +56,7 @@ async function sendMessage() {
             body: JSON.stringify({
                 itemId: itemId,
                 sender: user ? user.name : "Anonymous",
-                text: text   // ✅ correct field
+                text: text
             })
         });
 
