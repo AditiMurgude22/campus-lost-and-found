@@ -16,27 +16,23 @@ async function loadMessages() {
 
         messages.forEach(msg => {
             const div = document.createElement("div");
-
             div.classList.add("msg");
 
-            // ✅ LEFT / RIGHT ALIGN
             if (user && msg.sender === user.name) {
                 div.classList.add("right");
             } else {
                 div.classList.add("left");
             }
 
-            // ✅ FIX UNDEFINED MESSAGE
             div.innerText = msg.text || msg.message || "No message";
 
             chatBox.appendChild(div);
         });
 
-        // 🔽 AUTO SCROLL
         chatBox.scrollTop = chatBox.scrollHeight;
 
     } catch (err) {
-        console.log("Error loading messages:", err);
+        console.log(err);
     }
 }
 
@@ -61,16 +57,15 @@ async function sendMessage() {
         });
 
         input.value = "";
-
         loadMessages();
 
     } catch (err) {
-        console.log("Error sending message:", err);
+        console.log(err);
     }
 }
 
-// 🔄 AUTO REFRESH EVERY 2 SEC
+// 🔄 AUTO REFRESH
 setInterval(loadMessages, 2000);
 
-// 🚀 INITIAL LOAD
+// 🚀 INIT
 loadMessages();

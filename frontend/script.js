@@ -67,23 +67,17 @@ function displayItems(items) {
         box.innerHTML += `
         <div class="item" data-id="${item._id}">
             <img src="${img}" onerror="this.src='https://via.placeholder.com/80?text=No+Image'">
-            <div style="flex:1;min-width:0;">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                    <div>
-                        <b>${item.title}</b>
-                        <span style="margin-left:8px;color:${item.type === "lost" ? "red" : "green"};">
-                            (${item.type})
-                        </span>
-                    </div>
-                </div>
+            <div style="flex:1;">
+                <b>${item.title}</b>
+                <span style="color:${item.type === "lost" ? "red" : "green"};">(${item.type})</span>
 
-                <p style="margin:5px 0;">${item.location || ""}</p>
+                <p>${item.location || ""}</p>
 
-                <small style="color:#888;">
+                <small>
                     ${item.date ? new Date(item.date).toLocaleDateString() : ""}
                 </small>
 
-                ${item.ownerName ? `<div style="font-size:12px;color:#4c8d8d;margin-top:4px;">Posted by: ${escapeHtml(item.ownerName)}</div>` : ""}
+                ${item.ownerName ? `<div>Posted by: ${escapeHtml(item.ownerName)}</div>` : ""}
 
                 <div>${actionButtons}</div>
             </div>
@@ -92,19 +86,21 @@ function displayItems(items) {
     });
 }
 
+// 🔐 SAFE TEXT
 function escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
 }
 
-function chatWithOwner(ownerId, ownerName, itemId) {
+// 💬 CHAT
+function chatWithOwner(ownerId, ownerName) {
     window.location.href = `chat-tab.html?userId=${encodeURIComponent(ownerId)}&userName=${encodeURIComponent(ownerName)}`;
 }
 
-// 🗑 DELETE ITEM
+// 🗑 DELETE
 async function deleteItem(itemId, btnEl) {
-    if (!confirm("Are you sure you want to delete this item?")) return;
+    if (!confirm("Delete this item?")) return;
 
     try {
         const res = await fetch(`${BASE_URL}/api/items/delete/${itemId}`, {
@@ -112,15 +108,13 @@ async function deleteItem(itemId, btnEl) {
         });
 
         if (res.ok) {
-            const itemCard = btnEl.closest(".item");
-            if (itemCard) itemCard.remove();
-            alert("Item deleted ✅");
+            btnEl.closest(".item").remove();
+            alert("Deleted ✅");
         } else {
-            alert("Failed to delete item ❌");
+            alert("Delete failed ❌");
         }
     } catch (err) {
-        console.log("Delete error:", err);
-        alert("Error deleting item ❌");
+        alert("Error ❌");
     }
 }
 
@@ -135,42 +129,26 @@ function searchItems() {
     displayItems(filtered);
 }
 
-// 🔥 TYPE FILTER
-function filterType(type, el) {
+// 🎯 FILTER TYPE
+function filterType(type) {
     currentType = type;
-
-    document.querySelectorAll(".main-card").forEach(c =>
-        c.classList.remove("active-tab")
-    );
-
-    if (el) el.classList.add("active-tab");
-
     applyFilters();
 }
 
-// 🔥 CATEGORY FILTER
-function filterCategory(category, el) {
+// 🎯 FILTER CATEGORY
+function filterCategory(category) {
     currentCategory = category;
-
-    document.querySelectorAll(".category-box").forEach(c =>
-        c.classList.remove("active-category")
-    );
-
-    if (el) {
-        el.querySelector(".category-box").classList.add("active-category");
-    }
-
     applyFilters();
 }
 
-// ➕ SUBMIT ITEM
+// ➕ ADD ITEM
 function submitItem() {
     const title = document.getElementById("title").value;
     const description = document.getElementById("description").value;
     const category = document.getElementById("category").value;
     const location = document.getElementById("location").value;
     const date = document.getElementById("date").value;
-    const type = document.getElementById("type")?.value;
+    const type = document.getElementById("type").value;
     const image = document.getElementById("image").files[0];
 
     if (!title || !description || !category || !location || !type) {
@@ -198,19 +176,12 @@ function submitItem() {
     })
     .then(() => {
         alert("Item added ✅");
-
-        document.getElementById("title").value = "";
-        document.getElementById("description").value = "";
-        document.getElementById("location").value = "";
-        document.getElementById("date").value = "";
-        document.getElementById("image").value = "";
-
         loadItems();
     })
     .catch(() => {
-        alert("Error adding item ❌");
+        alert("Error ❌");
     });
 }
 
-// INIT
+// 🚀 INIT
 loadItems();
