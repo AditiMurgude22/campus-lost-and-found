@@ -1,4 +1,17 @@
-const BASE_URL = "https://campus-backend-f3og.onrender.com";
+// ✅ LIVE BACKEND URL
+const BASE = "https://campus-backend-f3og.onrender.com";
+
+// 🔐 PROTECT PAGE (redirect if not logged in)
+const user = JSON.parse(localStorage.getItem("user"));
+if (!user) {
+    window.location.href = "auth.html";
+}
+
+// 🚪 LOGOUT FUNCTION
+function logout() {
+    localStorage.removeItem("user");
+    window.location.href = "auth.html";
+}
 
 let allItems = [];
 let currentType = null;
@@ -7,7 +20,7 @@ let currentCategory = null;
 // 🚀 LOAD ITEMS
 async function loadItems() {
     try {
-        const res = await fetch(`${BASE_URL}/api/items/all`);
+        const res = await fetch(`${BASE}/api/items/all`);
         const data = await res.json();
 
         allItems = data.reverse();
@@ -48,7 +61,7 @@ function displayItems(items) {
 
     items.forEach(item => {
         let img = item.image
-            ? `${BASE_URL}/uploads/${item.image}`
+            ? `${BASE}/uploads/${item.image}`
             : "https://via.placeholder.com/80";
 
         const isOwner = String(item.ownerId) === String(currentUser.id);
@@ -57,28 +70,20 @@ function displayItems(items) {
         let actionButtons = "";
 
         if (showChat) {
-            actionButtons += `<button onclick="chatWithOwner('${item.ownerId}', '${escapeHtml(item.ownerName || "User")}', '${item._id}')" style="background:#2e6f6f;color:white;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;margin-top:6px;margin-right:6px;">💬 Chat</button>`;
+            actionButtons += `<button onclick="chatWithOwner('${item.ownerId}', '${item.ownerName || "User"}', '${item._id}')">💬 Chat</button>`;
         }
 
         if (isOwner) {
-            actionButtons += `<button onclick="deleteItem('${item._id}', this)" style="background:#c0392b;color:white;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;margin-top:6px;">🗑 Delete</button>`;
+            actionButtons += `<button onclick="deleteItem('${item._id}', this)">🗑 Delete</button>`;
         }
 
         box.innerHTML += `
-        <div class="item" data-id="${item._id}">
-            <img src="${img}" onerror="this.src='https://via.placeholder.com/80?text=No+Image'">
-            <div style="flex:1;">
-                <b>${item.title}</b>
-                <span style="color:${item.type === "lost" ? "red" : "green"};">(${item.type})</span>
-
+        <div class="item">
+            <img src="${img}">
+            <div>
+                <b>${item.title}</b> (${item.type})
                 <p>${item.location || ""}</p>
-
-                <small>
-                    ${item.date ? new Date(item.date).toLocaleDateString() : ""}
-                </small>
-
-                ${item.ownerName ? `<div>Posted by: ${escapeHtml(item.ownerName)}</div>` : ""}
-
+                <small>${item.date ? new Date(item.date).toLocaleDateString() : ""}</small>
                 <div>${actionButtons}</div>
             </div>
         </div>
@@ -86,62 +91,7 @@ function displayItems(items) {
     });
 }
 
-// 🔐 SAFE TEXT
-function escapeHtml(text) {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// 💬 CHAT
-function chatWithOwner(ownerId, ownerName) {
-    window.location.href = `chat-tab.html?userId=${encodeURIComponent(ownerId)}&userName=${encodeURIComponent(ownerName)}`;
-}
-
-// 🗑 DELETE
-async function deleteItem(itemId, btnEl) {
-    if (!confirm("Delete this item?")) return;
-
-    try {
-        const res = await fetch(`${BASE_URL}/api/items/delete/${itemId}`, {
-            method: "DELETE"
-        });
-
-        if (res.ok) {
-            btnEl.closest(".item").remove();
-            alert("Deleted ✅");
-        } else {
-            alert("Delete failed ❌");
-        }
-    } catch (err) {
-        alert("Error ❌");
-    }
-}
-
-// 🔍 SEARCH
-function searchItems() {
-    const q = document.getElementById("searchInput").value.toLowerCase();
-
-    const filtered = allItems.filter(i =>
-        i.title && i.title.toLowerCase().includes(q)
-    );
-
-    displayItems(filtered);
-}
-
-// 🎯 FILTER TYPE
-function filterType(type) {
-    currentType = type;
-    applyFilters();
-}
-
-// 🎯 FILTER CATEGORY
-function filterCategory(category) {
-    currentCategory = category;
-    applyFilters();
-}
-
-// ➕ ADD ITEM
+// ➕ SUBMIT ITEM
 function submitItem() {
     const title = document.getElementById("title").value;
     const description = document.getElementById("description").value;
@@ -156,8 +106,6 @@ function submitItem() {
         return;
     }
 
-    const currentUser = JSON.parse(localStorage.getItem("user")) || {};
-
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
@@ -165,12 +113,12 @@ function submitItem() {
     formData.append("location", location);
     formData.append("date", date);
     formData.append("type", type);
-    formData.append("ownerId", currentUser.id || "");
-    formData.append("ownerName", currentUser.name || "");
+    formData.append("ownerId", user.id);
+    formData.append("ownerName", user.name);
 
     if (image) formData.append("image", image);
 
-    fetch(`${BASE_URL}/api/items/add`, {
+    fetch(`${BASE}/api/items/add`, {
         method: "POST",
         body: formData
     })
@@ -179,8 +127,26 @@ function submitItem() {
         loadItems();
     })
     .catch(() => {
-        alert("Error ❌");
+        alert("Error adding item ❌");
     });
+}
+
+// ❌ DELETE ITEM
+async function deleteItem(id, btn) {
+    await fetch(`${BASE}/api/items/delete/${id}`, {
+        method: "DELETE"
+    });
+
+    btn.closest(".item").remove();
+}
+
+// 🔍 SEARCH
+function searchItems() {
+    const q = document.getElementById("searchInput").value.toLowerCase();
+    const filtered = allItems.filter(i =>
+        i.title && i.title.toLowerCase().includes(q)
+    );
+    displayItems(filtered);
 }
 
 // 🚀 INIT

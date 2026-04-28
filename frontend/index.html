@@ -53,12 +53,6 @@ body { margin:0; font-family:Arial; background:#eef3f3; }
     display:flex; align-items:center; justify-content:center;
 }
 
-.electronics { background:#d9f0f0; }
-.books { background:#dff5e3; }
-.keys { background:#fff3d6; }
-.bags { background:#eee3ff; }
-.other { background:#e0e0e0; }
-
 .active-category { border:2px solid #2e6f6f; }
 
 .section { padding:10px; }
@@ -77,27 +71,6 @@ body { margin:0; font-family:Arial; background:#eef3f3; }
     display:flex; justify-content:space-around;
     background:white; padding:8px;
 }
-
-.back-btn {
-    background: rgba(255,255,255,0.15);
-    border: none;
-    color: white;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 18px;
-    transition: background 0.2s, transform 0.15s;
-    padding: 0;
-}
-
-.back-btn:hover {
-    background: rgba(255,255,255,0.3);
-    transform: scale(1.05);
-}
 </style>
 </head>
 
@@ -105,10 +78,9 @@ body { margin:0; font-family:Arial; background:#eef3f3; }
 
 <div class="header">
     <div class="top-bar">
-        <div style="display:flex;align-items:center;gap:10px;">
-            <button class="back-btn" onclick="goBack()">←</button>
-            <h2>Lost & Found</h2>
-        </div>
+        <h2>Lost & Found</h2>
+
+        <!-- ✅ FIXED LOGOUT -->
         <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
@@ -119,14 +91,13 @@ body { margin:0; font-family:Arial; background:#eef3f3; }
 
 <div class="report-card" onclick="openAddForm()">➕ Report Item</div>
 
-<!-- ✅ FORM -->
+<!-- FORM -->
 <div id="addForm">
     <h3>Add Item</h3>
 
     <input id="title" placeholder="Title">
     <input id="description" placeholder="Description">
 
-    <!-- CATEGORY -->
     <select id="category">
         <option value="">Select Category</option>
         <option value="electronics">Electronics</option>
@@ -142,10 +113,7 @@ body { margin:0; font-family:Arial; background:#eef3f3; }
     </div>
 
     <input id="location" placeholder="Location">
-
-    <!-- ✅ DATE -->
     <input type="date" id="date">
-
     <input type="file" id="image">
 
     <button class="submit-btn" onclick="submitItem()">Submit Item</button>
@@ -158,23 +126,23 @@ body { margin:0; font-family:Arial; background:#eef3f3; }
 
 <div class="category-grid">
     <div class="category" onclick="filterCategory('electronics',this)">
-        <div class="category-box electronics">📱</div><small>Electronics</small>
+        📱<br>Electronics
     </div>
 
     <div class="category" onclick="filterCategory('books',this)">
-        <div class="category-box books">📚</div><small>Books</small>
+        📚<br>Books
     </div>
 
     <div class="category" onclick="filterCategory('keys',this)">
-        <div class="category-box keys">🔑</div><small>Keys</small>
+        🔑<br>Keys
     </div>
 
     <div class="category" onclick="filterCategory('bags',this)">
-        <div class="category-box bags">👜</div><small>Bags</small>
+        👜<br>Bags
     </div>
 
     <div class="category" onclick="filterCategory('other',this)">
-        <div class="category-box other">📦</div><small>Other</small>
+        📦<br>Other
     </div>
 </div>
 
@@ -185,41 +153,47 @@ body { margin:0; font-family:Arial; background:#eef3f3; }
 <div class="nav">
     <div onclick="location.reload()">Home</div>
     <div onclick="window.location.href='chat-tab.html'">Chat</div>
-<div onclick="window.location.href='profile.html'">Profile</div>
+    <div onclick="window.location.href='profile.html'">Profile</div>
 </div>
 
 <script src="script.js"></script>
 
 <script>
+// 🔐 PROTECT PAGE
+if (!localStorage.getItem("user")) {
+    window.location.href = "auth.html";
+}
+
+// 🚪 LOGOUT
 function logout() {
     localStorage.removeItem("user");
     window.location.href = "auth.html";
 }
 
-function goBack() {
-    if (window.history.length > 1) {
-        window.history.back();
-    } else {
-        window.location.href = "index.html";
-    }
-}
-
+// ➕ FORM TOGGLE
 function openAddForm() {
     const f = document.getElementById("addForm");
     f.style.display = f.style.display === "block" ? "none" : "block";
 }
 
+// 🎯 SELECT TYPE (FIXED BUTTON HIGHLIGHT)
 function selectType(type) {
     document.getElementById("type")?.remove();
+
     let i = document.createElement("input");
-    i.type="hidden"; i.id="type"; i.value=type;
+    i.type="hidden";
+    i.id="type";
+    i.value=type;
     document.body.appendChild(i);
 
-    lostBtn.classList.remove("active-lost");
-    foundBtn.classList.remove("active-found");
+    document.getElementById("lostBtn").classList.remove("active-lost");
+    document.getElementById("foundBtn").classList.remove("active-found");
 
-    if(type==="lost") lostBtn.classList.add("active-lost");
-    else foundBtn.classList.add("active-found");
+    if(type==="lost") {
+        document.getElementById("lostBtn").classList.add("active-lost");
+    } else {
+        document.getElementById("foundBtn").classList.add("active-found");
+    }
 }
 </script>
 

@@ -26,7 +26,6 @@ body {
     font-size: 1.3rem;
     color: #2e6f6f;
     margin-bottom: 10px;
-    letter-spacing: 0.5px;
 }
 
 input {
@@ -84,7 +83,9 @@ button {
 <div id="toast" class="toast"></div>
 
 <script>
-const BASE = "http://127.0.0.1:5000"; // ✅ FIXED
+
+// ✅ FIXED BASE URL (LIVE BACKEND)
+const BASE = "https://campus-backend-f3og.onrender.com";
 
 let isLogin = true;
 
@@ -118,16 +119,18 @@ async function submitForm() {
         const res = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(isLogin ? { email, password } : { name, email, password })
+            body: JSON.stringify(
+                isLogin 
+                ? { email, password } 
+                : { name, email, password }
+            )
         });
 
         const data = await res.json();
 
         if (data.user) {
             localStorage.setItem("user", JSON.stringify(data.user));
-            if (data.user.userId) {
-                localStorage.setItem("userId", data.user.userId);
-            }
+
             showToast("Success ✅");
 
             setTimeout(() => {
@@ -142,6 +145,7 @@ async function submitForm() {
         showToast("Cannot connect to server ❌");
     }
 }
+
 </script>
 
 </body>
