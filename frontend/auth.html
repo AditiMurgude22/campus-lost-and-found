@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Login</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: linear-gradient(135deg,#6aa9a9,#3c7c7c);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.box {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    width: 300px;
+}
+
+.project-title {
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: #2e6f6f;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background: #2e6f6f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+}
+
+.switch {
+    text-align: center;
+    margin-top: 10px;
+    cursor: pointer;
+    color: #2e6f6f;
+}
+
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #2e6f6f;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    display: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<div class="project-title">Campus Lost and Found</div>
+<h2 id="title">Login</h2>
+
+<input id="name" placeholder="Full Name" style="display:none;">
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="submitForm()">Login</button>
+
+<div class="switch" id="switchText" onclick="toggle()">Don't have account? Register</div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const BASE = "http://127.0.0.1:5000"; // ✅ FIXED
+
+let isLogin = true;
+
+function toggle() {
+    isLogin = !isLogin;
+    document.getElementById("title").innerText = isLogin ? "Login" : "Register";
+    document.querySelector("button").innerText = isLogin ? "Login" : "Register";
+    document.getElementById("name").style.display = isLogin ? "none" : "block";
+    document.getElementById("switchText").innerText = isLogin 
+        ? "Don't have account? Register" 
+        : "Already have account? Login";
+}
+
+function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.innerText = msg;
+    t.style.display = "block";
+    setTimeout(() => t.style.display = "none", 2000);
+}
+
+async function submitForm() {
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const url = isLogin
+        ? BASE + "/api/auth/login"
+        : BASE + "/api/auth/register";
+
+    try {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(isLogin ? { email, password } : { name, email, password })
+        });
+
+        const data = await res.json();
+
+        if (data.user) {
+            localStorage.setItem("user", JSON.stringify(data.user));
+            if (data.user.userId) {
+                localStorage.setItem("userId", data.user.userId);
+            }
+            showToast("Success ✅");
+
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1000);
+
+        } else {
+            showToast(data.message || "Error ❌");
+        }
+
+    } catch (err) {
+        showToast("Cannot connect to server ❌");
+    }
+}
+</script>
+
+</body>
+</html>

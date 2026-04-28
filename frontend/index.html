@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lost & Found</title>
+
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+
+<style>
+body { margin:0; font-family:Arial; background:#eef3f3; }
+.header { background:linear-gradient(135deg,#4c8d8d,#2e6f6f); color:white; padding:20px; }
+
+.top-bar { display:flex; justify-content:space-between; align-items:center; }
+.logout-btn { background:white; color:#2e6f6f; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; }
+
+.search-box input {
+    width:100%; padding:14px; border-radius:30px; border:none; margin-top:10px;
+}
+
+.report-card {
+    margin:15px; background:#3b7d7d; color:white; padding:18px;
+    border-radius:20px; cursor:pointer;
+}
+
+#addForm {
+    display:none; background:white; margin:15px; padding:15px; border-radius:15px;
+}
+
+#addForm input, #addForm select {
+    width:100%; padding:10px; margin-top:8px; border-radius:8px; border:1px solid #ccc;
+}
+
+.type-buttons { display:flex; gap:10px; margin-top:10px; }
+.type-buttons button { flex:1; padding:10px; border:none; border-radius:10px; cursor:pointer; }
+
+.active-lost { background:red; color:white; }
+.active-found { background:green; color:white; }
+
+.submit-btn {
+    margin-top:12px; width:100%; padding:12px; border:none;
+    background:#2e6f6f; color:white; border-radius:10px;
+}
+
+.card-container { display:flex; gap:10px; padding:10px; }
+.main-card { flex:1; padding:12px; border-radius:15px; background:#ddd; text-align:center; cursor:pointer; }
+.active-tab { background:#2e6f6f; color:white; }
+
+.category-grid { display:flex; justify-content:space-around; padding:10px; }
+.category { text-align:center; cursor:pointer; }
+
+.category-box {
+    width:55px; height:55px; border-radius:15px;
+    display:flex; align-items:center; justify-content:center;
+}
+
+.electronics { background:#d9f0f0; }
+.books { background:#dff5e3; }
+.keys { background:#fff3d6; }
+.bags { background:#eee3ff; }
+.other { background:#e0e0e0; }
+
+.active-category { border:2px solid #2e6f6f; }
+
+.section { padding:10px; }
+
+.item {
+    background:white; padding:10px; border-radius:15px;
+    display:flex; gap:10px; margin-bottom:10px;
+}
+
+.item img {
+    width:80px; height:80px; border-radius:10px; object-fit:cover;
+}
+
+.nav {
+    position:fixed; bottom:0; width:100%;
+    display:flex; justify-content:space-around;
+    background:white; padding:8px;
+}
+
+.back-btn {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background 0.2s, transform 0.15s;
+    padding: 0;
+}
+
+.back-btn:hover {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.05);
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <div class="top-bar">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <button class="back-btn" onclick="goBack()">←</button>
+            <h2>Lost & Found</h2>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="search-box">
+        <input id="searchInput" placeholder="Search..." onkeyup="searchItems()">
+    </div>
+</div>
+
+<div class="report-card" onclick="openAddForm()">➕ Report Item</div>
+
+<!-- ✅ FORM -->
+<div id="addForm">
+    <h3>Add Item</h3>
+
+    <input id="title" placeholder="Title">
+    <input id="description" placeholder="Description">
+
+    <!-- CATEGORY -->
+    <select id="category">
+        <option value="">Select Category</option>
+        <option value="electronics">Electronics</option>
+        <option value="books">Books</option>
+        <option value="keys">Keys</option>
+        <option value="bags">Bags</option>
+        <option value="other">Other</option>
+    </select>
+
+    <div class="type-buttons">
+        <button onclick="selectType('lost')" id="lostBtn">Lost</button>
+        <button onclick="selectType('found')" id="foundBtn">Found</button>
+    </div>
+
+    <input id="location" placeholder="Location">
+
+    <!-- ✅ DATE -->
+    <input type="date" id="date">
+
+    <input type="file" id="image">
+
+    <button class="submit-btn" onclick="submitItem()">Submit Item</button>
+</div>
+
+<div class="card-container">
+    <div class="main-card" onclick="filterType('lost', this)">Lost</div>
+    <div class="main-card" onclick="filterType('found', this)">Found</div>
+</div>
+
+<div class="category-grid">
+    <div class="category" onclick="filterCategory('electronics',this)">
+        <div class="category-box electronics">📱</div><small>Electronics</small>
+    </div>
+
+    <div class="category" onclick="filterCategory('books',this)">
+        <div class="category-box books">📚</div><small>Books</small>
+    </div>
+
+    <div class="category" onclick="filterCategory('keys',this)">
+        <div class="category-box keys">🔑</div><small>Keys</small>
+    </div>
+
+    <div class="category" onclick="filterCategory('bags',this)">
+        <div class="category-box bags">👜</div><small>Bags</small>
+    </div>
+
+    <div class="category" onclick="filterCategory('other',this)">
+        <div class="category-box other">📦</div><small>Other</small>
+    </div>
+</div>
+
+<div class="section">
+    <div id="items"></div>
+</div>
+
+<div class="nav">
+    <div onclick="location.reload()">Home</div>
+    <div onclick="window.location.href='chat-tab.html'">Chat</div>
+<div onclick="window.location.href='profile.html'">Profile</div>
+</div>
+
+<script src="script.js"></script>
+
+<script>
+function logout() {
+    localStorage.removeItem("user");
+    window.location.href = "auth.html";
+}
+
+function goBack() {
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        window.location.href = "index.html";
+    }
+}
+
+function openAddForm() {
+    const f = document.getElementById("addForm");
+    f.style.display = f.style.display === "block" ? "none" : "block";
+}
+
+function selectType(type) {
+    document.getElementById("type")?.remove();
+    let i = document.createElement("input");
+    i.type="hidden"; i.id="type"; i.value=type;
+    document.body.appendChild(i);
+
+    lostBtn.classList.remove("active-lost");
+    foundBtn.classList.remove("active-found");
+
+    if(type==="lost") lostBtn.classList.add("active-lost");
+    else foundBtn.classList.add("active-found");
+}
+</script>
+
+</body>
+</html>

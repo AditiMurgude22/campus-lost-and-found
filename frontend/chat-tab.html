@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat</title>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    height: 100%;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
+
+/* ===== BODY LAYOUT ===== */
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.header {
+    background: linear-gradient(135deg, #4c8d8d, #2e6f6f);
+    color: white;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    height: 52px;
+}
+
+.header h2 {
+    font-size: 20px;
+}
+
+.logout-btn {
+    background: white;
+    color: #2e6f6f;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.back-btn {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background 0.2s, transform 0.15s;
+    padding: 0;
+}
+
+.back-btn:hover {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.05);
+}
+
+/* ===== MAIN WRAPPER ===== */
+.main-wrapper {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* ===== LEFT PANEL ===== */
+.user-list {
+    width: 300px;
+    min-width: 300px;
+    background: white;
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.user-list-header {
+    padding: 14px;
+    border-bottom: 1px solid #eee;
+    font-weight: bold;
+    color: #2e6f6f;
+    background: #f8fafb;
+    flex-shrink: 0;
+}
+
+.user-list-scroll {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.user-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.user-card:hover, .user-card.active {
+    background: #eaf4f4;
+}
+
+.user-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4c8d8d, #2e6f6f);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.user-name {
+    font-weight: bold;
+    font-size: 15px;
+    color: #222;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-preview {
+    font-size: 12px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 3px;
+}
+
+.user-preview.unread {
+    color: #222;
+    font-weight: bold;
+}
+
+.user-email {
+    font-size: 12px;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 3px;
+}
+
+.unread-badge {
+    background: #e74c3c;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    flex-shrink: 0;
+}
+
+.empty-users {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+}
+
+/* ===== RIGHT PANEL ===== */
+.chat-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #e5ddd5;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* Placeholder */
+.chat-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+}
+
+.chat-placeholder-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+/* Chat Header */
+.chat-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #f0f2f5;
+    border-bottom: 1px solid #d1d7db;
+    flex-shrink: 0;
+}
+
+.chat-back-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #2e6f6f;
+    cursor: pointer;
+}
+
+.chat-header-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-header-name {
+    font-weight: bold;
+    font-size: 16px;
+    color: #111b21;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-header-email {
+    font-size: 13px;
+    color: #667781;
+}
+
+/* Messages */
+.messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Message row - aligns bubble left or right */
+.msg-row {
+    display: flex;
+    width: 100%;
+    margin-bottom: 4px;
+}
+
+.msg-row.sent {
+    justify-content: flex-end;
+}
+
+.msg-row.received {
+    justify-content: flex-start;
+}
+
+/* Message bubble */
+.msg-bubble {
+    max-width: 65%;
+    min-width: 50px;
+    padding: 6px 10px;
+    border-radius: 7.5px;
+    font-size: 14.2px;
+    line-height: 19px;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.msg-bubble.sent {
+    background: #d9fdd3;
+    color: #111b21;
+    border-top-right-radius: 0;
+}
+
+.msg-bubble.received {
+    background: #ffffff;
+    color: #111b21;
+    border-top-left-radius: 0;
+    box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+}
+
+.msg-text {
+    display: block;
+}
+
+.msg-time {
+    font-size: 11px;
+    color: #667781;
+    margin-top: 4px;
+    display: block;
+    text-align: right;
+}
+
+/* Input area */
+.input-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: #f0f2f5;
+    border-top: 1px solid #d1d7db;
+    flex-shrink: 0;
+}
+
+.input-area input {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 24px;
+    outline: none;
+    font-size: 15px;
+    background: white;
+}
+
+.send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #2e6f6f;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* ===== BOTTOM NAV ===== */
+.nav {
+    display: flex;
+    justify-content: space-around;
+    background: white;
+    padding: 10px 0;
+    border-top: 1px solid #ddd;
+    flex-shrink: 0;
+    height: 50px;
+}
+
+.nav div {
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    flex: 1;
+}
+
+.nav div.active {
+    color: #2e6f6f;
+    font-weight: bold;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+    .user-list {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    .user-list.hidden {
+        display: none;
+    }
+
+    .chat-box {
+        display: none;
+        width: 100%;
+    }
+
+    .chat-box.open {
+        display: flex;
+    }
+
+    .chat-back-btn {
+        display: block;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div style="display:flex;align-items:center;gap:10px;">
+        <button class="logout-btn" onclick="goBack()" style="padding:6px 10px;font-size:16px;">⬅</button>
+        <h2>💬 Chat</h2>
+    </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrapper">
+
+    <!-- LEFT: USER LIST -->
+    <div class="user-list" id="userListPanel">
+        <div class="user-list-header">Start a conversation</div>
+        <div class="user-list-scroll" id="userList">
+            <div class="empty-users">Loading users...</div>
+        </div>
+    </div>
+
+    <!-- RIGHT: CHAT BOX -->
+    <div class="chat-box" id="chatBoxPanel">
+
+        <div class="chat-placeholder" id="chatPlaceholder">
+            <div class="chat-placeholder-icon">💬</div>
+            <p>Select a user to start chatting</p>
+        </div>
+
+        <div class="chat-header" id="chatHeader" style="display:none;">
+            <button class="chat-back-btn" onclick="closeChat()">⬅</button>
+            <div class="user-avatar" id="headerAvatar" style="width:40px;height:40px;font-size:14px;"></div>
+            <div class="chat-header-info">
+                <div class="chat-header-name" id="headerName"></div>
+                <div class="chat-header-email" id="headerEmail"></div>
+            </div>
+        </div>
+
+        <div class="messages" id="messagesArea" style="display:none;"></div>
+
+        <div class="input-area" id="inputArea" style="display:none;">
+            <input type="text" id="msgInput" placeholder="Type a message..." onkeypress="handleEnter(event)">
+            <button class="send-btn" onclick="sendMessage()">➤</button>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- NAV -->
+<div class="nav">
+    <div onclick="window.location.href='index.html'">🏠 Home</div>
+    <div class="active" onclick="location.reload()">💬 Chat</div>
+    <div onclick="window.location.href='profile.html'">👤 Profile</div>
+</div>
+
+<script>
+const BASE = "http://127.0.0.1:5000";
+const user = JSON.parse(localStorage.getItem("user"));
+
+if (!user || !user.id) {
+    alert("Please login first 🔒");
+    window.location.href = "auth.html";
+}
+
+let allUsers = [];
+let selectedUser = null;
+let pollInterval = null;
+let messageSummary = {};
+
+const urlParams = new URLSearchParams(window.location.search);
+const targetUserId = urlParams.get("userId");
+
+// ===================== USER LIST =====================
+
+async function loadUsers() {
+    try {
+        const res = await fetch(BASE + "/api/messages/users");
+        if (!res.ok) throw new Error("Server returned " + res.status);
+
+        let data = await res.json();
+        allUsers = data.filter(u => String(u._id) !== String(user.id));
+
+        await loadMessageSummary();
+        displayUsers(allUsers);
+        autoOpenChat();
+    } catch (err) {
+        console.error("Error loading users:", err);
+        document.getElementById("userList").innerHTML = `
+            <div class="empty-users">
+                Failed to load users 😔<br>
+                <small style="color:#aaa;">${err.message}</small>
+            </div>
+        `;
+    }
+}
+
+async function loadMessageSummary() {
+    try {
+        const res = await fetch(BASE + "/api/messages/summary/" + user.id);
+        if (!res.ok) return;
+        messageSummary = await res.json();
+    } catch (err) {
+        messageSummary = {};
+    }
+}
+
+function displayUsers(users) {
+    const box = document.getElementById("userList");
+    if (users.length === 0) {
+        box.innerHTML = `<div class="empty-users">No other users found</div>`;
+        return;
+    }
+
+    box.innerHTML = "";
+    users.forEach(u => {
+        const initials = u.name ? u.name.substring(0, 2).toUpperCase() : "??";
+        const summary = messageSummary[String(u._id)] || {};
+        const unreadCount = summary.unreadCount || 0;
+        const lastMsg = summary.lastMessage || "";
+
+        const div = document.createElement("div");
+        div.className = "user-card";
+        div.dataset.id = u._id;
+        div.onclick = () => openChat(u);
+
+        let previewHtml = "";
+        if (lastMsg) {
+            const previewClass = unreadCount > 0 ? "user-preview unread" : "user-preview";
+            previewHtml = `<div class="${previewClass}">${escapeHtml(lastMsg)}</div>`;
+        } else {
+            previewHtml = `<div class="user-email">${escapeHtml(u.email)}</div>`;
+        }
+
+        let badgeHtml = "";
+        if (unreadCount > 0) {
+            badgeHtml = `<div class="unread-badge">${unreadCount}</div>`;
+        }
+
+        div.innerHTML = `
+            <div class="user-avatar">${initials}</div>
+            <div class="user-info">
+                <div class="user-name-row">
+                    <div class="user-name">${escapeHtml(u.name)}</div>
+                    ${badgeHtml}
+                </div>
+                ${previewHtml}
+            </div>
+        `;
+        box.appendChild(div);
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ===================== CHAT =====================
+
+async function openChat(targetUser) {
+    selectedUser = targetUser;
+
+    document.querySelectorAll(".user-card").forEach(c => c.classList.remove("active"));
+    const activeCard = document.querySelector(`.user-card[data-id="${targetUser._id}"]`);
+    if (activeCard) activeCard.classList.add("active");
+
+    document.getElementById("chatPlaceholder").style.display = "none";
+    document.getElementById("chatHeader").style.display = "flex";
+    document.getElementById("messagesArea").style.display = "flex";
+    document.getElementById("inputArea").style.display = "flex";
+
+    const initials = targetUser.name ? targetUser.name.substring(0, 2).toUpperCase() : "??";
+    document.getElementById("headerAvatar").textContent = initials;
+    document.getElementById("headerName").textContent = targetUser.name;
+    document.getElementById("headerEmail").textContent = targetUser.email;
+
+    if (window.innerWidth <= 768) {
+        document.getElementById("userListPanel").classList.add("hidden");
+        document.getElementById("chatBoxPanel").classList.add("open");
+    }
+
+    await markMessagesAsRead(targetUser._id);
+    loadMessages();
+
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(loadMessages, 2000);
+}
+
+async function markMessagesAsRead(otherUserId) {
+    try {
+        await fetch(BASE + "/api/messages/mark-read", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                myUserId: user.id,
+                otherUserId: otherUserId
+            })
+        });
+        await loadMessageSummary();
+        displayUsers(allUsers);
+    } catch (err) {
+        console.log("Error marking read:", err);
+    }
+}
+
+function closeChat() {
+    document.getElementById("userListPanel").classList.remove("hidden");
+    document.getElementById("chatBoxPanel").classList.remove("open");
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = null;
+    selectedUser = null;
+}
+
+async function loadMessages() {
+    if (!selectedUser) return;
+
+    try {
+        const res = await fetch(
+            `${BASE}/api/messages/conversation/${user.id}/${selectedUser._id}`
+        );
+        const messages = await res.json();
+
+        const box = document.getElementById("messagesArea");
+        box.innerHTML = "";
+
+        if (messages.length === 0) {
+            box.innerHTML = `<div style="text-align:center;color:#aaa;margin-top:20px;">No messages yet. Say hi! 👋</div>`;
+            return;
+        }
+
+        messages.forEach(msg => {
+            const isSent = String(msg.senderId) === String(user.id);
+            const time = new Date(msg.timestamp).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "msg-row " + (isSent ? "sent" : "received");
+
+            const bubble = document.createElement("div");
+            bubble.className = "msg-bubble " + (isSent ? "sent" : "received");
+
+            const textDiv = document.createElement("div");
+            textDiv.className = "msg-text";
+            textDiv.textContent = msg.text;
+
+            const timeSpan = document.createElement("span");
+            timeSpan.className = "msg-time";
+            timeSpan.textContent = time;
+
+            bubble.appendChild(textDiv);
+            bubble.appendChild(timeSpan);
+            wrapper.appendChild(bubble);
+            box.appendChild(wrapper);
+        });
+
+        box.scrollTop = box.scrollHeight;
+
+    } catch (err) {
+        console.log("Error loading messages:", err);
+    }
+}
+
+async function sendMessage() {
+    const input = document.getElementById("msgInput");
+    const text = input.value.trim();
+    if (!text || !selectedUser) return;
+
+    try {
+        await fetch(BASE + "/api/messages/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                senderId: user.id,
+                receiverId: selectedUser._id,
+                text: text
+            })
+        });
+
+        input.value = "";
+        loadMessages();
+
+        await loadMessageSummary();
+        displayUsers(allUsers);
+
+    } catch (err) {
+        alert("Failed to send message ❌");
+    }
+}
+
+function handleEnter(event) {
+    if (event.key === "Enter") sendMessage();
+}
+
+function logout() {
+    localStorage.removeItem("user");
+    window.location.href = "auth.html";
+}
+
+function goBack() {
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        window.location.href = "index.html";
+    }
+}
+
+function autoOpenChat() {
+    if (!targetUserId) return;
+    const target = allUsers.find(u => String(u._id) === String(targetUserId));
+    if (target) openChat(target);
+}
+
+// ===================== INIT =====================
+loadUsers();
+</script>
+
+</body>
+</html>
+
